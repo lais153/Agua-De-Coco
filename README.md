@@ -71,7 +71,7 @@ Não é necessário forçar o envio para esta atualização. Se o terminal disse
 
 ## Antes de usar com vendas reais
 
-Entre com a mesma conta no PC e no Samsung. Cadastre um produto de teste, salve uma venda, recarregue e confira no outro aparelho. Teste edição, exclusão, exportação e fechamento. Um fechamento bloqueia aquela data; prefira um projeto Supabase separado para testar o fechamento completo de hoje. Não há reabertura de dia pela interface.
+Entre com a mesma conta no PC e no Samsung. Cadastre um produto de teste, salve uma venda, recarregue e confira no outro aparelho. Teste edição, exclusão, exportação e fechamento. Um fechamento bloqueia aquela data; prefira um projeto Supabase separado para testar o fechamento completo de hoje. Na aba Fechamento, Reabrir dia permite continuar e fechar novamente. O relatório anterior fica na auditoria; um novo relatório só é liberado depois do próximo fechamento.
 
 As operações de escrita são transacionais no PostgreSQL e serializadas por usuário. Preços e totais são calculados no banco. Reenvios do mesmo identificador não duplicam a venda. Exclusões são lógicas, com auditoria. As sessões usam cookies HttpOnly e são renovadas pelo servidor; caso a sessão expire ou seja revogada, entre novamente. Cabeçalhos de identidade do visitante não autenticam ninguém.
 
@@ -94,4 +94,8 @@ O relatório gerencial de 58 mm só está disponível após fechar o dia e pode 
 - https://vercel.com/docs/builds/configure-a-build
 - https://supabase.com/docs/guides/database/functions
 - https://supabase.com/docs/guides/database/postgres/row-level-security
+
+
+## Atualização: reabrir dia
+Bancos existentes precisam executar uma vez supabase/migrations/002_reabrir_dia.sql. O botão Reabrir dia remove apenas o bloqueio da data e preserva o fechamento anterior na auditoria, sem apagar vendas. Um novo fechamento recalcula o relatório. A função já foi aplicada no banco desta instalação.
 
