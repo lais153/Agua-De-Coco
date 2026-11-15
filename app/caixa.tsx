@@ -5,7 +5,8 @@ const money=(n:number)=>(n/100).toLocaleString('pt-BR',{style:'currency',currenc
 const methods=['Pix','Dinheiro','Débito','Crédito'];
 function Coco(){return <img className="coco-image" src="/coco-realeza.png" alt="Água de coco refrescante com gelo e canudo"/>}
 function CocoFechado(){return <img className="coco-image" src="/coco-natural.png" alt="Coco natural fechado com gotas de água"/>}
-function ProdutoImagem({name}:{name:string}){const garrafa=/garrafa|garaffa|gafarra/i.test(name);return /coco\s+natural/i.test(name)?<CocoFechado/>:garrafa?<img className="coco-image bottle-image" src="/garrafa-realeza.png" alt="Garrafa de água de coco"/>:<Coco/>}
+function imagemGarrafa(name:string){if(/\b300\s*ml\b/i.test(name))return '/garrafa-300ml.png';if(/\b500\s*ml\b/i.test(name))return '/garrafa-500ml.png';if(/\b1\s*(litros?|l)\b/i.test(name))return '/garrafa-1litro.png';if(/\b2\s*(litros?|l)\b/i.test(name))return '/garrafa-2litros.png';return '/garrafa-realeza.png';}
+function ProdutoImagem({name}:{name:string}){const garrafa=/garrafa|garaffa|gafarra/i.test(name);return /coco\s+natural/i.test(name)?<CocoFechado/>:garrafa?<img className="coco-image bottle-image" src={imagemGarrafa(name)} alt={"Garrafa de água de coco — "+name}/>:<Coco/>}
 export default function Caixa({email}:{email:string}){
 const orderRef=useRef<HTMLElement>(null);const [added,setAdded]=useState<{name:string;id:string}|null>(null);
 useEffect(()=>{if(!added)return;const timer=setTimeout(()=>setAdded(null),2400);return()=>clearTimeout(timer)},[added]);
