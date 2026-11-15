@@ -2,8 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {"label":"Realeza: instalar componentes","type":"shell","command":"pnpm install","problemMatcher":[]},
-    {"label":"Realeza: preparar banco de teste","type":"shell","command":"pnpm build && pnpm db:local","problemMatcher":[]},
     {"label":"Realeza: abrir aplicativo local","type":"shell","command":"pnpm dev","isBackground":true,"problemMatcher":[]},
-    {"label":"Realeza: verificar aplicativo","type":"shell","command":"pnpm test && pnpm typecheck","problemMatcher":[]}
+    {"label":"Realeza: verificar aplicativo","type":"shell","command":"pnpm test && pnpm typecheck && pnpm build","problemMatcher":[]}
   ]
 }

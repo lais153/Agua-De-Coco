@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+let user={token:'test-token'},reply={response:{ok:true},body:{ok:true}},calls=[];
+const fakeSupabase=async(...args)=>{calls.push(args);return reply};
+const source=fs.readFileSync('app/api/caixa/route.ts','utf8').replace("import initialProducts from '../../../lib/initial-products.json';",'const initialProducts=[];').replace("import {apiUser,supabase,sameOrigin} from '../../../lib/supabase';",'const {apiUser,supabase,sameOrigin}=globalThis.routeMocks;');
+globalThis.routeMocks={apiUser:async()=>user,supabase:fakeSupabase,sameOrigin:req=>req.headers.get('origin')===new URL(req.url).origin};
+const js=ts.transpile(source,{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022});
+const route=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const post=(body,origin='https://realeza.test')=>route.POST(new Request('https://realeza.test/api/caixa',{method:'POST',headers:{Origin:origin},body:JSON.stringify(body)}));
+test('API exige sessão e recusa escritas de outra origem',async()=>{user=null;assert.equal((await route.GET()).status,401);assert.equal((await post({})).status,401);user={token:'test-token'};assert.equal((await post({},'https://other.test')).status,403)});
+test('API encaminha o token verificado ao banco, sem confiar no owner enviado',async()=>{calls=[];const payload={action:'sale',owner:'forged-owner'};const result=await post(payload);assert.equal(result.status,200);assert.equal(calls[0][0],'/rest/v1/rpc/realeza_command');assert.equal(calls[0][2],'test-token');assert.deepEqual(JSON.parse(calls[0][1].body),{payload});assert.equal(result.headers.get('cache-control'),'no-store')});
+test('API propaga erros de negócio e esconde detalhes internos',async()=>{reply={response:{ok:false},body:{code:'P0001',message:'Dia fechado.'}};assert.equal((await (await post({})).json()).error,'Dia fechado.');reply={response:{ok:false},body:{code:'42P01',message:'private database internals'}};assert.doesNotMatch((await (await post({})).json()).error,/private database/);reply={response:{ok:true},body:{ok:true}}});
+test('Falha de rede não retorna confirmação de venda',async()=>{globalThis.routeMocks.supabase=async()=>{throw Error('network')};const freshJs=js+'\n// network case';const fresh=await import('data:text/javascript;base64,'+Buffer.from(freshJs).toString('base64'));const result=await fresh.POST(new Request('https://realeza.test/api/caixa',{method:'POST',headers:{Origin:'https://realeza.test'},body:'{}'}));assert.equal(result.status,503);assert.equal((await result.json()).ok,undefined)});

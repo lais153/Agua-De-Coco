@@ -6,3 +6,5 @@
 .coco-image{display:block;object-fit:contain}.brand .coco-image{width:62px;height:70px;flex-shrink:0}.product-art{display:flex;align-items:center;justify-content:center}.product-art .coco-image{width:100%;height:128px;padding:8px}.empty-coco .coco-image{width:110px;height:130px;margin:auto}@media(max-width:800px){.brand .coco-image{width:44px;height:50px}}
 
 .product-art .bottle-image{padding:0;border-radius:12px;object-fit:contain}
+
+.logout-button{background:none;border:0;color:#d7e3cc;padding:0;margin-top:18px;font-size:12px}.login-page{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.login-panel{width:100%;max-width:440px}.login-panel>img{display:block;object-fit:contain;margin:0 auto 20px}.login-panel h1{font-size:28px}.login-panel p{line-height:1.7;color:#6b7d62}.login-panel>small{display:block;margin-top:20px;color:#7e8973;font-size:11px;line-height:1.6}

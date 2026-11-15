@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+process.env.SUPABASE_URL='https://supabase.example.test';process.env.SUPABASE_ANON_KEY='public-test-key';
+const jar=new Map(),writes=[];
+globalThis.cookieMock={get:name=>jar.has(name)?{value:jar.get(name)}:undefined,set:(name,value,options)=>{jar.set(name,value);writes.push({name,options})},delete:name=>jar.delete(name)};
+let requests=[],handler=()=>Response.json({id:'user-1',email:'user@example.test'});
+globalThis.fetch=async(url,options)=>{requests.push({url,options});return handler(url,options)};
+const source=fs.readFileSync('lib/supabase.ts','utf8').replace("import 'server-only';",'').replace("import {cookies} from 'next/headers';",'const cookies=async()=>globalThis.cookieMock;');
+const js=ts.transpile(source,{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022});
+const auth=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+test('Sessão sem token não autentica e token é validado no Supabase',async()=>{assert.equal(await auth.getUser(),null);jar.set('realeza-access','access-1');assert.equal((await auth.getUser()).userId,'user-1');assert.equal(requests[0].options.headers.Authorization,'Bearer access-1');assert.equal(requests[0].options.cache,'no-store');handler=()=>Response.json({message:'invalid'},{status:401});assert.equal(await auth.getUser(),null)});
+test('Refresh renova tokens em cookies HttpOnly e usa apenas chave pública',async()=>{jar.set('realeza-refresh','refresh-1');handler=()=>Response.json({access_token:'access-2',refresh_token:'refresh-2'});assert.equal(await auth.refreshSession(),true);assert.equal(jar.get('realeza-access'),'access-2');assert.equal(jar.get('realeza-refresh'),'refresh-2');assert.ok(writes.every(w=>w.options.httpOnly&&w.options.sameSite==='lax'));const r=requests.at(-1);assert.match(r.url,/grant_type=refresh_token/);assert.equal(JSON.parse(r.options.body).refresh_token,'refresh-1');assert.equal(r.options.headers.apikey,'public-test-key');await auth.clearSession();assert.equal(jar.size,0)});

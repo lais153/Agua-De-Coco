@@ -1,44 +1,55 @@
-# Água de Coco Realeza
+# Água de Coco Realeza — Vercel + Supabase
 
-Projeto para editar no **Visual Studio Code** no PC e usar no Samsung pelo navegador depois da publicação.
+Esta versão usa Next.js, hospedagem Vercel e PostgreSQL com autenticação do Supabase. Mantém a interface verde, as imagens de coco e garrafa, a ordenação dos produtos, o carrinho, Pix/dinheiro/débito/crédito, histórico, fechamento e relatório de 58 mm.
 
-## Abrir no editor
+## O que foi corrigido
 
-1. Extraia o ZIP inteiro para uma pasta do computador.
-2. No Visual Studio Code, escolha **Arquivo → Abrir Pasta** e selecione `agua-de-coco-realeza`.
-3. Você também pode abrir o arquivo `agua-de-coco-realeza.code-workspace`.
+O build agora é `next build --webpack` e gera `.next/routes-manifest.json`. A versão Vinext/Cloudflare e o login via cabeçalhos do ChatGPT foram substituídos. A configuração de Vercel está no arquivo `vercel.json`. Não coloque `dist` como saída.
 
-O VisuAlg é outro programa; este projeto usa Visual Studio Code.
+## 1. Criar o banco e a conta
 
-## Preparar o PC
+1. Crie sua conta em https://supabase.com e um projeto novo. Guarde a senha do banco em local seguro; ela não é a senha de entrada do caixa.
+2. No SQL Editor, cole e execute todo o conteúdo de `supabase/schema.sql` uma vez. Esse arquivo cria tabelas, permissões, auditoria e funções. Use um projeto novo; não apague tabelas existentes para reaplicá-lo.
+3. Em Authentication → Users, crie sua usuária com seu e-mail e uma senha forte. Confirme o e-mail pelo painel se disponível ou pelo fluxo enviado pelo serviço.
+4. Desative novos cadastros públicos nas configurações de autenticação. Não há botão de cadastro no app.
+5. Nas configurações de API/Connect do projeto, copie a URL do projeto e a chave pública anon ou publishable. **Não use a chave service_role/secret.**
 
-Instale Node.js compatível com o requisito do `package.json` (22.13 ou superior) e Git. Abra um novo terminal no editor após instalar.
+O banco identifica o usuário pela sessão validada do Supabase. As tabelas têm proteção por usuário; PC e Samsung devem entrar com a mesma conta para ver o mesmo caixa. Não há equipe com usuários distintos compartilhando dados nesta versão.
 
-No terminal, execute:
+## 2. Configurar a Vercel
+
+No projeto Vercel conectado ao repositório `lais153/Agua-De-Coco`:
+
+- Framework Preset: **Next.js**.
+- Root Directory: a pasta que contém `package.json`. Se os arquivos estão na raiz do GitHub, deixe vazio/padrão.
+- Node.js: **24.x**.
+- Install Command: `pnpm install --frozen-lockfile`.
+- Build Command: `pnpm run build`.
+- Output Directory: `.next` (ou padrão do Next.js). Remova qualquer configuração antiga de `dist`.
+- Environment Variables: adicione `SUPABASE_URL` e `SUPABASE_ANON_KEY` com os valores do seu projeto para Production e, se for testar prévias, Preview.
+
+Depois de enviar as mudanças ao GitHub, faça um Redeploy sem reaproveitar o cache antigo. Alterar variáveis também exige um novo deploy.
+
+Sem as variáveis, o site mostra uma tela explicando a configuração pendente e não permite registrar vendas. O build não depende de ter acesso ao banco nem de credenciais.
+
+## 3. Abrir no PC
+
+Instale Node.js 24 e o gerenciador informado em `package.json`:
 
 ```powershell
-npm install --global pnpm@11.25.0
+npm install -g pnpm@11.25.0
 pnpm install
-pnpm build
-pnpm db:local
+```
+
+Copie `.env.example` para `.env.local` e preencha as duas variáveis com as mesmas usadas na Vercel. Não envie `.env.local` ao GitHub.
+
+```powershell
 pnpm dev
 ```
 
-Abra o endereço local mostrado no terminal, normalmente `http://localhost:5173`. O ambiente local simula uma conta de teste no fluxo de entrada. Se necessário, abra `http://localhost:5173/signin-with-chatgpt?return_to=/`.
+Abra o endereço mostrado no terminal, normalmente http://localhost:3000. Mesmo no PC, esta versão usa o banco Supabase configurado: use uma conta de teste ou um projeto separado para testes. Não existe mais banco SQLite de teste nem entrada automática de demonstração.
 
-**O banco local serve para testes. Ele não sincroniza com o Samsung e não é o banco online. Não registre vendas reais antes da publicação e validação.** Não apague `.wrangler/state` se quiser manter os testes.
-
-## Onde editar
-
-- `app/caixa.tsx`: telas, carrinho e interações.
-- `app/globals.css`: cores verdes e aparência para PC/celular.
-- `app/api/caixa/route.ts`: validação e gravação no banco.
-- `db/schema.ts`: estrutura dos dados.
-- `drizzle/`: migrações do banco; preserve migrações já aplicadas.
-
-O coco fechado com canudo é desenhado na interface. Os produtos começam vazios porque os nomes e valores antigos não estavam disponíveis no histórico recuperado. Cadastre os valores reais na aba Produtos.
-
-## Verificar
+Verificações:
 
 ```powershell
 pnpm test
@@ -46,48 +57,41 @@ pnpm typecheck
 pnpm build
 ```
 
-O teste cobre salvamento, repetição sem duplicação, preços calculados no servidor, quantidades, conflito de edição, exclusão lógica, totais de fechamento, bloqueio após fechar, separação por usuário e autenticação. Isso não substitui testar a publicação e a impressora física.
+## 4. Enviar as mudanças
 
-## Colocar no GitHub
-
-No controle de código do VS Code, inicie um repositório, revise os arquivos e faça o primeiro commit. Publique em um repositório privado da sua conta. Também é possível usar Git no terminal:
+A pasta de trabalho existente foi atualizada, preservando `.git` e o endereço do seu repositório. Revise as alterações e execute:
 
 ```powershell
-git init
 git add .
-git commit -m "Inicia aplicativo Agua de Coco Realeza"
+git commit -m "Adapta caixa para Vercel e Supabase"
+git push origin main
 ```
 
-Depois associe o repositório criado na sua conta do GitHub. Nenhum envio ao GitHub foi realizado nesta entrega.
+Não é necessário forçar o envio para esta atualização. Se o terminal disser que a branch está divergente, não use `--force` sem conferir o histórico.
 
-O `.gitignore` exclui dependências, banco de teste, arquivos temporários e variáveis locais. Nunca envie senhas, tokens, backups financeiros ou arquivos `.env`. O GitHub guarda o código; as vendas ficam no banco.
+## Antes de usar com vendas reais
 
-## Publicação e banco online
+Entre com a mesma conta no PC e no Samsung. Cadastre um produto de teste, salve uma venda, recarregue e confira no outro aparelho. Teste edição, exclusão, exportação e fechamento. Um fechamento bloqueia aquela data; prefira um projeto Supabase separado para testar o fechamento completo de hoje. Não há reabertura de dia pela interface.
 
-Esta versão está preparada para **Sites + Cloudflare D1**, com acesso privado pela conta ChatGPT. A entrada não é uma senha própria do aplicativo. A pasta `.openai/hosting.json` contém a identificação do Site já registrado nesta conversa; preserve-a para continuar nesse mesmo Site. Ele ainda não foi publicado nesta entrega.
+As operações de escrita são transacionais no PostgreSQL e serializadas por usuário. Preços e totais são calculados no banco. Reenvios do mesmo identificador não duplicam a venda. Exclusões são lógicas, com auditoria. As sessões usam cookies HttpOnly e são renovadas pelo servidor; caso a sessão expire ou seja revogada, entre novamente. Cabeçalhos de identidade do visitante não autenticam ninguém.
 
-Para publicar, é necessário compilar, sincronizar o código pelo fluxo de publicação do Sites, aplicar as migrações no D1 online e confirmar a publicação privada. Só subir o código no GitHub ou abrir no VS Code não executa essas etapas.
+## Produtos e dados antigos
 
-Outra hospedagem exige adaptar o acesso, o banco e a implantação. Os cabeçalhos de identidade deste código são confiáveis apenas atrás da autenticação do Sites; não exponha este servidor diretamente na internet confiando em cabeçalhos enviados pelo visitante.
+Os 6 produtos ativos da prévia, com seus preços e ordem, estão preservados em `lib/initial-products.json` e são cadastrados uma única vez quando uma conta abre um banco vazio. Dados e vendas antigas não migram automaticamente. Foi salvo um backup independente da prévia antes desta mudança (6 produtos e nenhuma venda). Antes de abandonar a prévia, exporte **Backup completo**. O arquivo guarda produtos, vendas, fechamentos e auditoria. Não envie backups financeiros ao GitHub. Você pode conferir e editar os produtos na aba Produtos; o cadastro inicial não substitui produtos que já existam no banco. Uma importação de vendas antigas deve validar o arquivo e os totais antes de inserir no novo banco. Não há restauração/importação automática nesta versão.
 
-Depois de publicar: entre com a mesma conta no PC e no Samsung, cadastre um produto, faça uma venda de teste, recarregue e confira no outro aparelho. Verifique o backup e o fechamento de uma data de teste antes de usar como caixa real. No Samsung, adicione o endereço publicado à tela inicial pelo menu do Chrome.
+O app continua com as imagens fornecidas e identifica os nomes de garrafa, inclusive as grafias cadastradas GARAFFA e GAFARRA. Use as setas na aba Produtos para escolher a ordem; ela é mantida na tela Vender.
 
-## Salvamento e backup
+## Backup e impressão
 
-A venda só é confirmada depois da resposta do banco. Falhas mantêm o pedido na tela enquanto a página continua aberta; não existe fila offline persistente. Fechar ou recarregar antes de salvar pode perder o pedido ainda não confirmado. É preciso internet para trabalhar com o banco online.
+Baixe Backup completo em JSON ao fim do dia e guarde uma cópia fora do celular. CSV é para consulta das vendas ativas. Não há backup agendado: armazenamento online e exportação manual não são garantia contra toda perda. O projeto depende da disponibilidade, limites e retenção do plano contratado no Supabase e na Vercel.
 
-O mesmo pedido reenviado mantém seu identificador para evitar duplicação. Edições verificam a versão da venda, e dias fechados bloqueiam novas vendas e alterações. Exclusões preservam o registro e a auditoria no banco.
+O pedido ainda não confirmado só existe na tela. Sem internet, mantenha a página aberta e tente salvar de novo; fechar a página pode perder o pedido pendente. Vendas confirmadas ficam no banco online.
 
-Em Histórico ou Fechamento, **Backup completo** baixa JSON com produtos, vendas, fechamentos e auditoria. **Exportar CSV** baixa as vendas ativas para consulta. Guarde cópias fora do navegador, de preferência após cada dia. Não há backup agendado nem restauração automática implementada; restauração exige importar e validar o JSON no banco com ajuda técnica. Os dados da versão HTML antiga não são recuperados automaticamente.
+O relatório gerencial de 58 mm só está disponível após fechar o dia e pode ser reimpresso. Não é documento fiscal. O botão usa o diálogo de impressão do sistema. No PC, instale o driver da impressora e configure papel/margens. No Samsung, Bluetooth depende do modelo e de um serviço de impressão ou app do fabricante. Parear a impressora não garante impressão pelo Chrome; comandos ESC/POS diretos não estão implementados.
 
-## Impressão 58 mm
+## Referências
 
-O relatório gerencial fica disponível somente depois do fechamento; não há impressão a cada venda. É possível reimprimir um fechamento. O relatório não tem valor fiscal.
-
-O botão abre o diálogo de impressão do sistema. Configure papel de 58 mm, margens mínimas e desative cabeçalhos/rodapés. O resultado depende da impressora e do driver.
-
-Bluetooth não é garantido pelo navegador. No PC, a impressora precisa ser reconhecida pelo sistema com driver compatível. No Samsung, pode ser necessário um serviço de impressão ou aplicativo do fabricante. Impressoras Bluetooth que só recebem comandos ESC/POS podem exigir uma integração específica que esta versão não inclui. O pareamento Bluetooth sozinho não garante que a impressora apareça no Chrome. Teste com o modelo físico antes de depender dela no caixa.
-
-## Organizar os produtos
-Na aba Produtos, use as setas para cima e para baixo. A ordem fica no banco e vale também na tela Vender. Em instalações anteriores, aplique a nova migração 0001_product_order.sql antes de usar a versão atualizada.
+- https://vercel.com/docs/builds/configure-a-build
+- https://supabase.com/docs/guides/database/functions
+- https://supabase.com/docs/guides/database/postgres/row-level-security
 

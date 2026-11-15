@@ -1,5 +1,0 @@
-import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
-export const products = sqliteTable('products', { id:text('id').primaryKey(), owner:text('owner').notNull(), name:text('name').notNull(), price:integer('price').notNull(), active:integer('active').notNull().default(1), sortOrder:integer('sort_order').notNull().default(0) });
-export const sales = sqliteTable('sales', { id:text('id').primaryKey(), owner:text('owner').notNull(), day:text('day').notNull(), created:text('created').notNull(), payment:text('payment').notNull(), items:text('items').notNull(), total:integer('total').notNull(), deleted:integer('deleted').notNull().default(0), version:integer('version').notNull().default(1) });
-export const closings = sqliteTable('closings', { owner:text('owner').notNull(), day:text('day').notNull(), created:text('created').notNull(), snapshot:text('snapshot').notNull() },t=>[primaryKey({columns:[t.owner,t.day]})]);
-export const audit = sqliteTable('audit', { id:text('id').primaryKey(), owner:text('owner').notNull(), created:text('created').notNull(), action:text('action').notNull(), details:text('details').notNull() });

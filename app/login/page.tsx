@@ -1,0 +1,6 @@
+import {configured} from '../../lib/supabase';
+export const dynamic='force-dynamic';
+export default async function Login({searchParams}:{searchParams:Promise<{error?:string}>}){
+ const {error}=await searchParams;
+ return <main className="login-page"><section className="panel login-panel"><img src="/coco-realeza.png" alt="Água de Coco Realeza" width="95" height="105"/><span className="eyebrow">ÁGUA DE COCO REALEZA</span><h1>Seu caixa, em segurança.</h1><p>Entre com seu e-mail e senha para acessar o movimento no PC ou no celular.</p>{!configured()?<div className="notice">Falta conectar o banco online. Configure SUPABASE_URL e SUPABASE_ANON_KEY na Vercel e execute o arquivo supabase/schema.sql no seu projeto Supabase.</div>:<form action="/api/auth/login" method="post"><label>E-mail<input name="email" type="email" autoComplete="username" required maxLength={254}/></label><label>Senha<input name="password" type="password" autoComplete="current-password" required maxLength={256}/></label>{error&&<p role="alert">{error==='network'?'Não foi possível conectar. Tente novamente.':'Confira seu e-mail e senha e tente novamente.'}</p>}<button className="primary wide" type="submit">Entrar no caixa</button></form>}<small>A conta é criada pelo responsável no Supabase. Não há cadastro público.</small></section></main>
+}
