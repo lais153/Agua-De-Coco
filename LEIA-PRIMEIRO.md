@@ -101,6 +101,11 @@ Bancos existentes precisam executar uma vez supabase/migrations/002_reabrir_dia.
 
 
 ## Abertura e conferência de dinheiro
-Antes de vender, informe o dinheiro inicial de troco e clique Abrir caixa. Pode ser 0,00. Esse dinheiro não é faturamento. No fechamento, informe o dinheiro contado: esperado = valor inicial + vendas em dinheiro. Pix, débito e crédito permanecem separados. O relatório mostra inicial, esperado, contado e sobra/falta. Reabrir mantém a abertura original e exige nova contagem ao fechar de novo. Não há registro de retiradas/suprimentos nesta versão; a conta pressupõe que não ocorreram movimentações de dinheiro fora das vendas.
+Antes de vender, informe o dinheiro inicial de troco e clique Abrir caixa. Pode ser 0,00. Esse dinheiro não é faturamento. No fechamento, informe o dinheiro contado: esperado = valor inicial + vendas em dinheiro. Pix, débito e crédito permanecem separados. O relatório mostra inicial, esperado, contado e sobra/falta. Reabrir mantém a abertura original e exige nova contagem ao fechar de novo. Compras, despesas e retiradas em dinheiro são registradas em Fechamento e descontadas do esperado. Consumo interno registra produto, quantidade e motivo sem criar uma venda. Suprimentos adicionais em dinheiro, além da abertura, não estão implementados.
 Bancos existentes executam supabase/migrations/003_abertura_caixa.sql uma vez após a migração 002. Essa atualização já foi aplicada e testada no banco desta instalação. O teste transacional supabase/test-abertura.sql reverte todos os registros de teste.
+
+
+## Retiradas, consumo e despesas
+Na aba Fechamento, registre uma saída de dinheiro com valor e descrição (por exemplo compra de gelo), ou consumo interno com produto, quantidade e motivo. A fórmula passa a ser: inicial + vendas em dinheiro - saídas de dinheiro. Consumo não gera faturamento nem tira dinheiro do caixa; é um registro de quantidade, sem controle de saldo de estoque. Os lançamentos aparecem no relatório 58 mm e no backup JSON. É possível cancelar antes de fechar, mantendo o registro e a auditoria. Depois de fechar, reabra o dia para acrescentar ou cancelar lançamentos e gere novo relatório ao fechar novamente.
+Bancos existentes executam supabase/migrations/004_movimentacoes.sql uma vez após as anteriores. Essa atualização já foi aplicada no banco desta instalação. supabase/test-movimentacoes.sql valida os cálculos em transação revertida.
 
