@@ -99,3 +99,8 @@ O relatório gerencial de 58 mm só está disponível após fechar o dia e pode 
 ## Atualização: reabrir dia
 Bancos existentes precisam executar uma vez supabase/migrations/002_reabrir_dia.sql. O botão Reabrir dia remove apenas o bloqueio da data e preserva o fechamento anterior na auditoria, sem apagar vendas. Um novo fechamento recalcula o relatório. A função já foi aplicada no banco desta instalação.
 
+
+## Abertura e conferência de dinheiro
+Antes de vender, informe o dinheiro inicial de troco e clique Abrir caixa. Pode ser 0,00. Esse dinheiro não é faturamento. No fechamento, informe o dinheiro contado: esperado = valor inicial + vendas em dinheiro. Pix, débito e crédito permanecem separados. O relatório mostra inicial, esperado, contado e sobra/falta. Reabrir mantém a abertura original e exige nova contagem ao fechar de novo. Não há registro de retiradas/suprimentos nesta versão; a conta pressupõe que não ocorreram movimentações de dinheiro fora das vendas.
+Bancos existentes executam supabase/migrations/003_abertura_caixa.sql uma vez após a migração 002. Essa atualização já foi aplicada e testada no banco desta instalação. O teste transacional supabase/test-abertura.sql reverte todos os registros de teste.
+
